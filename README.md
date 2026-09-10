@@ -124,14 +124,16 @@ sits in its own horizontally-scrollable container — swipe sideways on a
 table to see columns that don't fit, without the whole page scrolling
 sideways.
 
-## Row limits
+## Row limits & paging
 
 Each table (weekly history, logged entries, settings change history) has a
-"Show" dropdown (10 / 20 / 50 / 100, default 10) above it that caps how many
-rows are visible — useful once you've been logging for a while. All rows are
-still ordered newest first, so this just trims off the older tail; nothing
-is deleted. Your choice is remembered per table in the browser
-(`localStorage`) via `row-limit.js`.
+"Show" dropdown (10 / 20 / 50 / 100, default 10) that sets how many rows fit
+on a page, plus "« Prev" / "Next »" buttons and a "Page X of Y" indicator
+below it to page through the rest — nothing is deleted, all rows are still
+there in order (newest first), just split across pages. Changing the page
+size jumps back to page 1. Your chosen page size is remembered per table in
+the browser (`localStorage`) via `row-limit.js`; the current page itself
+resets on reload.
 
 ### Optional: password-protect the page
 

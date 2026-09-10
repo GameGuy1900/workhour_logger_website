@@ -172,6 +172,11 @@ function h($value)
             </tbody>
         </table>
         </div>
+        <div class="pagination" data-pagination-for="weekly-history-table">
+            <button type="button" class="page-prev">&laquo; Prev</button>
+            <span class="page-info">Page 1 of 1</span>
+            <button type="button" class="page-next">Next &raquo;</button>
+        </div>
         <?php endif; ?>
     </div>
 
@@ -214,6 +219,11 @@ function h($value)
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
+        <div class="pagination" data-pagination-for="logged-entries-table">
+            <button type="button" class="page-prev">&laquo; Prev</button>
+            <span class="page-info">Page 1 of 1</span>
+            <button type="button" class="page-next">Next &raquo;</button>
         </div>
         <?php endif; ?>
     </div>

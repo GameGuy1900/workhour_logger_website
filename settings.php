@@ -142,6 +142,11 @@ $history = array_reverse(get_settings_history());
             </tbody>
         </table>
         </div>
+        <div class="pagination" data-pagination-for="settings-history-table">
+            <button type="button" class="page-prev">&laquo; Prev</button>
+            <span class="page-info">Page 1 of 1</span>
+            <button type="button" class="page-next">Next &raquo;</button>
+        </div>
     </div>
     <?php endif; ?>
 </div>
