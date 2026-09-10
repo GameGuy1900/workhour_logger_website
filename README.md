@@ -36,8 +36,13 @@ touching any code:
   a progress bar and marks it "Paid off!" once your total surplus pay meets
   or exceeds it. Set the price to 0 to hide the goal.
 
-These are stored in the `settings` table (one row) rather than in
-`config.php`, so they can be changed from the browser at any time.
+**Changing the weekly target or surplus rate only affects the current week
+onward — it never recalculates already-completed weeks.** Each change is
+recorded with the date it took effect (`settings_history` table), and every
+past week is judged against whatever target/rate was actually active for it
+at the time. The Settings page shows a small change history table so you can
+see what was in effect when. The savings goal isn't week-based, so it's just
+a single current value.
 
 ## Requirements
 
@@ -68,12 +73,35 @@ plans, no Node.js Selector or special modules needed.
 
 ### Upgrading an existing deployment
 
-If you deployed this app before the settings page existed, re-run
-`schema.sql` (it's safe to run again — it only creates the `settings` table
-if missing and seeds one default row) and upload the new/changed files.
-Any `WEEKLY_TARGET_HOURS` or `SURPLUS_RATE_EUR` lines left over in your
-`config.php` are simply unused now; remove them or leave them, either is
-fine. Set your real values from `settings.php` instead.
+**If you deployed before the settings page existed at all:** re-run
+`schema.sql` (safe to run again — it only creates tables if missing) and
+upload the new/changed files. Any `WEEKLY_TARGET_HOURS` or
+`SURPLUS_RATE_EUR` lines left over in your `config.php` are simply unused
+now; remove them or leave them, either is fine.
+
+**If you already have the settings page from before this history feature
+existed** (a `settings` table with `weekly_target_hours`/`surplus_rate_eur`
+columns on it), migrate your existing values into the new history table
+before uploading the new files, so you don't lose them — run this once in
+phpMyAdmin's SQL tab:
+
+```sql
+CREATE TABLE IF NOT EXISTS settings_history (
+    effective_from DATE NOT NULL,
+    weekly_target_hours DECIMAL(5,2) NOT NULL,
+    surplus_rate_eur DECIMAL(6,2) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (effective_from)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO settings_history (effective_from, weekly_target_hours, surplus_rate_eur)
+SELECT '1970-01-01', weekly_target_hours, surplus_rate_eur FROM settings WHERE id = 1;
+
+ALTER TABLE settings DROP COLUMN weekly_target_hours, DROP COLUMN surplus_rate_eur;
+```
+
+Then upload the new files. Your weekly target and surplus rate carry over
+unchanged, now editable going forward without touching past weeks.
 
 ### Optional: password-protect the page
 
@@ -107,9 +135,9 @@ settings.php          Edit weekly target hours, surplus rate, savings goal
 add_entry.php          Handles the "log a day" form submission
 delete_entry.php        Handles deleting an entry
 includes/db.php          PDO/MySQL connection
-includes/weeks.php       Pure weekly carryover calculation logic
-includes/settings.php    Reads/writes the settings row
-schema.sql                MySQL table definitions (entries, settings)
+includes/weeks.php       Pure weekly carryover calculation logic, effective-dated settings lookup
+includes/settings.php    Reads/writes the goal row and settings history
+schema.sql                MySQL table definitions (entries, settings, settings_history)
 config.sample.php         Template for config.php (create your own, see above)
 style.css                  Styling
 test/weeks_test.php        Unit tests for includes/weeks.php

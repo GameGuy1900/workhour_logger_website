@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/weeks.php';
 require_once __DIR__ . '/includes/settings.php';
 
 function h($value)
@@ -7,6 +8,7 @@ function h($value)
     return htmlspecialchars((string) $value, ENT_QUOTES);
 }
 
+$today = (new DateTime())->format('Y-m-d');
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -26,18 +28,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        update_settings(
-            (float) $weeklyTargetHours,
-            (float) $surplusRateEur,
-            $goalLabel,
-            (float) $goalAmountEur
-        );
+        save_settings_change(week_start($today), (float) $weeklyTargetHours, (float) $surplusRateEur);
+        update_goal_settings($goalLabel, (float) $goalAmountEur);
         header('Location: settings.php?saved=1');
         exit;
     }
 }
 
-$settings = get_settings();
+$currentSettings = get_current_settings($today);
+$goalSettings = get_goal_settings();
+$history = array_reverse(get_settings_history());
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -69,23 +69,27 @@ $settings = get_settings();
             <div>
                 <label for="weekly_target_hours">Weekly target hours</label>
                 <input type="number" id="weekly_target_hours" name="weekly_target_hours" step="0.25" min="0.25"
-                       value="<?= h($_POST['weekly_target_hours'] ?? $settings['weekly_target_hours']) ?>" required>
+                       value="<?= h($_POST['weekly_target_hours'] ?? $currentSettings['weekly_target_hours']) ?>" required>
             </div>
             <div>
                 <label for="surplus_rate_eur">Surplus pay rate (&euro; per hour)</label>
                 <input type="number" id="surplus_rate_eur" name="surplus_rate_eur" step="0.01" min="0"
-                       value="<?= h($_POST['surplus_rate_eur'] ?? $settings['surplus_rate_eur']) ?>" required>
+                       value="<?= h($_POST['surplus_rate_eur'] ?? $currentSettings['surplus_rate_eur']) ?>" required>
             </div>
+            <p class="field-hint">
+                Changes apply from this week onward. Already-completed weeks keep whatever
+                target and rate were active at the time, so past weeks never get recalculated.
+            </p>
             <div>
                 <label for="goal_label">Savings goal name (optional)</label>
                 <input type="text" id="goal_label" name="goal_label" maxlength="255"
                        placeholder="e.g. New headphones"
-                       value="<?= h($_POST['goal_label'] ?? $settings['goal_label']) ?>">
+                       value="<?= h($_POST['goal_label'] ?? $goalSettings['goal_label']) ?>">
             </div>
             <div>
                 <label for="goal_amount_eur">Goal price (&euro;)</label>
                 <input type="number" id="goal_amount_eur" name="goal_amount_eur" step="0.01" min="0"
-                       value="<?= h($_POST['goal_amount_eur'] ?? $settings['goal_amount_eur']) ?>" required>
+                       value="<?= h($_POST['goal_amount_eur'] ?? $goalSettings['goal_amount_eur']) ?>" required>
                 <p class="field-hint">
                     Your accumulated surplus pay counts toward this price. Set to 0 to disable the goal.
                 </p>
@@ -93,6 +97,26 @@ $settings = get_settings();
             <button type="submit">Save settings</button>
         </form>
     </div>
+
+    <?php if (count($history) > 1): ?>
+    <div class="card">
+        <h2>Change history</h2>
+        <table>
+            <thead>
+                <tr><th>Effective from</th><th>Target hours</th><th>Rate</th></tr>
+            </thead>
+            <tbody>
+            <?php foreach ($history as $row): ?>
+                <tr>
+                    <td><?= h($row['effective_from']) ?></td>
+                    <td><?= h(number_format((float) $row['weekly_target_hours'], 2)) ?></td>
+                    <td>&euro;<?= h(number_format((float) $row['surplus_rate_eur'], 2)) ?>/hr</td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
 </div>
 </body>
 </html>

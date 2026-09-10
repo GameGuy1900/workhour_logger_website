@@ -3,23 +3,22 @@ require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/weeks.php';
 require_once __DIR__ . '/includes/settings.php';
 
-$settings = get_settings();
-$weeklyTargetHours = (float) $settings['weekly_target_hours'];
-$surplusRateEur = (float) $settings['surplus_rate_eur'];
-$goalLabel = $settings['goal_label'];
-$goalAmountEur = (float) $settings['goal_amount_eur'];
+$settingsHistory = get_settings_history();
+$goalSettings = get_goal_settings();
+$goalLabel = $goalSettings['goal_label'];
+$goalAmountEur = (float) $goalSettings['goal_amount_eur'];
 
 $entries = get_db()
     ->query('SELECT id, entry_date, hours, description FROM entries ORDER BY entry_date DESC, id DESC')
     ->fetchAll();
 
 $today = (new DateTime())->format('Y-m-d');
-$weeklySummaries = compute_weekly_summaries($entries, $weeklyTargetHours, $today);
+$weeklySummaries = compute_weekly_summaries($entries, $settingsHistory, $today);
 $currentWeek = $weeklySummaries[0];
 $pastWeeks = array_slice($weeklySummaries, 1);
 
 $totalSurplusHours = array_sum(array_column($weeklySummaries, 'surplus'));
-$totalSurplusPay = $totalSurplusHours * $surplusRateEur;
+$totalSurplusPay = array_sum(array_column($weeklySummaries, 'surplus_pay'));
 
 $goalPaid = $goalAmountEur > 0 ? min($totalSurplusPay, $goalAmountEur) : 0.0;
 $goalPercent = $goalAmountEur > 0 ? min(100, $totalSurplusPay / $goalAmountEur * 100) : 0.0;
@@ -43,7 +42,7 @@ function h($value)
 <div class="container">
     <h1>Work Hour Logger</h1>
     <p class="subtitle">
-        Log your hours each day. Target: <?= h(number_format($weeklyTargetHours, 2)) ?> hours/week &mdash;
+        Log your hours each day. Target: <?= h(number_format($currentWeek['weekly_target_hours'], 2)) ?> hours/week &mdash;
         any shortfall carries into next week.
         <a href="settings.php" class="settings-link">Settings</a>
     </p>
@@ -65,15 +64,15 @@ function h($value)
         <?php if ($currentWeek['surplus'] > 0): ?>
         <p class="surplus-note">
             <?= h(number_format($currentWeek['surplus'], 2)) ?> surplus hours
-            &times; &euro;<?= h(number_format($surplusRateEur, 2)) ?>/hr
-            = &euro;<?= h(number_format($currentWeek['surplus'] * $surplusRateEur, 2)) ?>
+            &times; &euro;<?= h(number_format($currentWeek['surplus_rate_eur'], 2)) ?>/hr
+            = &euro;<?= h(number_format($currentWeek['surplus_pay'], 2)) ?>
         </p>
         <?php endif; ?>
     </div>
 
     <div class="card">
         <h2>Surplus pay</h2>
-        <p>Surplus hours are hours logged beyond a week's required hours, paid at &euro;<?= h(number_format($surplusRateEur, 2)) ?>/hour.</p>
+        <p>Surplus hours are hours logged beyond a week's required hours, paid at that week's rate (currently &euro;<?= h(number_format($currentWeek['surplus_rate_eur'], 2)) ?>/hour).</p>
         <div class="current-week">
             <span><?= h(number_format($totalSurplusHours, 2)) ?> surplus hours total</span>
             <span class="status-met">&euro;<?= h(number_format($totalSurplusPay, 2)) ?></span>
@@ -126,7 +125,7 @@ function h($value)
         <?php else: ?>
         <table>
             <thead>
-                <tr><th>Week</th><th>Logged</th><th>Required</th><th>Status</th><th>Surplus</th><th>Pay</th></tr>
+                <tr><th>Week</th><th>Logged</th><th>Required</th><th>Status</th><th>Surplus</th><th>Rate</th><th>Pay</th></tr>
             </thead>
             <tbody>
             <?php foreach ($pastWeeks as $week): ?>
@@ -138,7 +137,8 @@ function h($value)
                         <?= $week['met'] ? 'Met' : h(number_format(-$week['difference'], 2)) . ' short' ?>
                     </td>
                     <td><?= h(number_format($week['surplus'], 2)) ?></td>
-                    <td>&euro;<?= h(number_format($week['surplus'] * $surplusRateEur, 2)) ?></td>
+                    <td>&euro;<?= h(number_format($week['surplus_rate_eur'], 2)) ?>/hr</td>
+                    <td>&euro;<?= h(number_format($week['surplus_pay'], 2)) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
