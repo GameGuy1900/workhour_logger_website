@@ -114,9 +114,20 @@ $history = array_reverse(get_settings_history());
 
     <?php if (count($history) > 1): ?>
     <div class="card">
-        <h2>Change history</h2>
+        <div class="card-header">
+            <h2>Change history</h2>
+            <label class="row-limit">
+                Show
+                <select data-row-limit data-target="settings-history-table">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+        </div>
         <div class="table-scroll">
-        <table>
+        <table id="settings-history-table">
             <thead>
                 <tr><th>Effective from</th><th>Target hours</th><th>Rate</th></tr>
             </thead>
@@ -135,5 +146,6 @@ $history = array_reverse(get_settings_history());
     <?php endif; ?>
 </div>
 <script src="<?= h(asset_url('theme.js')) ?>"></script>
+<script src="<?= h(asset_url('row-limit.js')) ?>"></script>
 </body>
 </html>

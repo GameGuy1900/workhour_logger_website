@@ -133,12 +133,25 @@ function h($value)
     </div>
 
     <div class="card">
-        <h2>Weekly history</h2>
+        <div class="card-header">
+            <h2>Weekly history</h2>
+            <?php if (!empty($pastWeeks)): ?>
+            <label class="row-limit">
+                Show
+                <select data-row-limit data-target="weekly-history-table">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+            <?php endif; ?>
+        </div>
         <?php if (empty($pastWeeks)): ?>
             <p class="empty-state">No previous weeks yet.</p>
         <?php else: ?>
         <div class="table-scroll">
-        <table>
+        <table id="weekly-history-table">
             <thead>
                 <tr><th>Week</th><th>Logged</th><th>Required</th><th>Status</th><th>Surplus</th><th>Rate</th><th>Pay</th></tr>
             </thead>
@@ -163,12 +176,25 @@ function h($value)
     </div>
 
     <div class="card">
-        <h2>Logged entries</h2>
+        <div class="card-header">
+            <h2>Logged entries</h2>
+            <?php if (!empty($entries)): ?>
+            <label class="row-limit">
+                Show
+                <select data-row-limit data-target="logged-entries-table">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+            <?php endif; ?>
+        </div>
         <?php if (empty($entries)): ?>
             <p class="empty-state">No entries yet.</p>
         <?php else: ?>
         <div class="table-scroll">
-        <table>
+        <table id="logged-entries-table">
             <thead>
                 <tr><th>Date</th><th>Hours</th><th>Description</th><th></th></tr>
             </thead>
@@ -193,5 +219,6 @@ function h($value)
     </div>
 </div>
 <script src="<?= h(asset_url('theme.js')) ?>"></script>
+<script src="<?= h(asset_url('row-limit.js')) ?>"></script>
 </body>
 </html>

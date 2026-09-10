@@ -124,6 +124,15 @@ sits in its own horizontally-scrollable container — swipe sideways on a
 table to see columns that don't fit, without the whole page scrolling
 sideways.
 
+## Row limits
+
+Each table (weekly history, logged entries, settings change history) has a
+"Show" dropdown (10 / 20 / 50 / 100, default 20) above it that caps how many
+rows are visible — useful once you've been logging for a while. All rows are
+still ordered newest first, so this just trims off the older tail; nothing
+is deleted. Your choice is remembered per table in the browser
+(`localStorage`) via `row-limit.js`.
+
 ### Optional: password-protect the page
 
 This app has no login of its own. Since anyone with the URL could add or
@@ -158,10 +167,11 @@ delete_entry.php        Handles deleting an entry
 includes/db.php          PDO/MySQL connection
 includes/weeks.php       Pure weekly carryover calculation logic, effective-dated settings lookup
 includes/settings.php    Reads/writes the goal row and settings history
-style.css                  Styling, including light/dark theme variables
-theme.js                   Dark mode toggle button behavior
+includes/assets.php      Cache-busting ?v= helper for style.css/theme.js/row-limit.js
 schema.sql                MySQL table definitions (entries, settings, settings_history)
 config.sample.php         Template for config.php (create your own, see above)
-style.css                  Styling
+style.css                  Styling, including light/dark theme variables
+theme.js                   Dark mode toggle button behavior
+row-limit.js               "Show N rows" dropdown behavior for tables
 test/weeks_test.php        Unit tests for includes/weeks.php
 ```

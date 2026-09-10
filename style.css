@@ -126,6 +126,38 @@ h1 {
     font-size: 1.1rem;
 }
 
+.card-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.card-header h2 {
+    margin: 0;
+}
+
+.row-limit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.row-limit select {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    font-family: inherit;
+}
+
 form.entry-form {
     display: grid;
     gap: 12px;
