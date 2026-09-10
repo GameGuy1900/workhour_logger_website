@@ -137,6 +137,7 @@ function h($value)
         <?php if (empty($pastWeeks)): ?>
             <p class="empty-state">No previous weeks yet.</p>
         <?php else: ?>
+        <div class="table-scroll">
         <table>
             <thead>
                 <tr><th>Week</th><th>Logged</th><th>Required</th><th>Status</th><th>Surplus</th><th>Rate</th><th>Pay</th></tr>
@@ -157,6 +158,7 @@ function h($value)
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
         <?php endif; ?>
     </div>
 
@@ -165,6 +167,7 @@ function h($value)
         <?php if (empty($entries)): ?>
             <p class="empty-state">No entries yet.</p>
         <?php else: ?>
+        <div class="table-scroll">
         <table>
             <thead>
                 <tr><th>Date</th><th>Hours</th><th>Description</th><th></th></tr>
@@ -174,7 +177,7 @@ function h($value)
                 <tr>
                     <td><?= h($entry['entry_date']) ?></td>
                     <td><?= h(number_format((float) $entry['hours'], 2)) ?></td>
-                    <td><?= nl2br(h($entry['description'])) ?></td>
+                    <td class="wrap-cell"><?= nl2br(h($entry['description'])) ?></td>
                     <td>
                         <form action="delete_entry.php" method="post" onsubmit="return confirm('Delete this entry?');">
                             <input type="hidden" name="id" value="<?= h($entry['id']) ?>">
@@ -185,6 +188,7 @@ function h($value)
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
         <?php endif; ?>
     </div>
 </div>

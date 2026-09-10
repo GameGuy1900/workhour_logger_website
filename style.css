@@ -81,9 +81,10 @@ body {
 
 .top-bar {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
+    gap: 8px 12px;
 }
 
 h1 {
@@ -171,8 +172,10 @@ button:hover {
 
 .current-week {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: baseline;
+    gap: 4px 12px;
     margin-bottom: 8px;
 }
 
@@ -232,8 +235,15 @@ button:hover {
     background: var(--success);
 }
 
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -4px;
+}
+
 table {
     width: 100%;
+    min-width: 460px;
     border-collapse: collapse;
     font-size: 0.9rem;
 }
@@ -242,6 +252,12 @@ th, td {
     text-align: left;
     padding: 8px 6px;
     border-bottom: 1px solid var(--border-light);
+    white-space: nowrap;
+}
+
+td.wrap-cell {
+    white-space: normal;
+    min-width: 160px;
 }
 
 th {

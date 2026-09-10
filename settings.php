@@ -115,6 +115,7 @@ $history = array_reverse(get_settings_history());
     <?php if (count($history) > 1): ?>
     <div class="card">
         <h2>Change history</h2>
+        <div class="table-scroll">
         <table>
             <thead>
                 <tr><th>Effective from</th><th>Target hours</th><th>Rate</th></tr>
@@ -129,6 +130,7 @@ $history = array_reverse(get_settings_history());
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
     <?php endif; ?>
 </div>

@@ -116,6 +116,14 @@ your server automatically busts any browser or proxy cache — you'll
 always get the current version after a deploy, with no manual cache
 clearing needed.
 
+## Mobile
+
+The page works down to narrow phone widths. Tables (weekly history, logged
+entries, settings change history) can be wider than the screen, so each one
+sits in its own horizontally-scrollable container — swipe sideways on a
+table to see columns that don't fit, without the whole page scrolling
+sideways.
+
 ### Optional: password-protect the page
 
 This app has no login of its own. Since anyone with the URL could add or
