@@ -56,7 +56,17 @@ $entries = [
     ['entry_date' => '2026-09-07', 'hours' => 20], // 8 hours surplus
 ];
 $summaries = compute_weekly_summaries($entries, 12, '2026-09-14');
+$week1 = $summaries[1];
 $week2 = $summaries[0];
+assert_equal(8.0, $week1['surplus'], 'surplus is hours logged beyond the required amount');
 assert_equal(12.0, $week2['required'], 'surplus hours do not roll forward');
+assert_equal(0.0, $week2['surplus'], 'a week with no entries has zero surplus');
+
+// A short week has zero surplus, even though it is short rather than over.
+$entries = [
+    ['entry_date' => '2026-09-07', 'hours' => 8],
+];
+$summaries = compute_weekly_summaries($entries, 12, '2026-09-07');
+assert_equal(0.0, $summaries[0]['surplus'], 'a short week has zero surplus');
 
 echo "All tests passed.\n";

@@ -86,6 +86,12 @@ button:hover {
     margin-bottom: 8px;
 }
 
+.surplus-note {
+    margin: 10px 0 0;
+    font-size: 0.85rem;
+    color: #2fae5c;
+}
+
 .progress-bar {
     background: #e6e8ee;
     border-radius: 8px;

@@ -14,9 +14,15 @@ of the following week's target.
   the base 12-hour target (surplus hours are not banked forward).
 - A week with zero entries still counts as a full shortfall and carries
   forward, compounding if you skip multiple weeks in a row.
+- Any hours logged in a week beyond that week's required hours count as
+  **surplus hours**, paid at a configurable rate (€10/hour by default,
+  see `SURPLUS_RATE_EUR` in `config.php`). Surplus hours are not carried
+  forward to reduce future targets — the carryover rule only ever adds
+  hours for shortfalls, never subtracts them for surplus.
 
 The calculation lives in `includes/weeks.php` (`compute_weekly_summaries`)
-and is covered by `test/weeks_test.php`.
+and is covered by `test/weeks_test.php`. The page shows surplus hours and
+pay for the current week, per past week, and as a running total.
 
 ## Requirements
 
@@ -38,8 +44,9 @@ plans, no Node.js Selector or special modules needed.
    `yourdomain.com/hours/` instead of the domain root).
 4. **Configure credentials.** Copy `config.sample.php` to `config.php`
    (via File Manager: duplicate, then rename) and fill in `DB_NAME`,
-   `DB_USER`, `DB_PASS` from step 1. `config.php` is git-ignored so your
-   real credentials never end up in version control.
+   `DB_USER`, `DB_PASS` from step 1 (and adjust `SURPLUS_RATE_EUR` if you
+   want a different surplus pay rate than €10/hour). `config.php` is
+   git-ignored so your real credentials never end up in version control.
 5. **Visit the site.** Open your domain in a browser — you should see the
    logger UI. Add a test entry to confirm the database connection works.
 

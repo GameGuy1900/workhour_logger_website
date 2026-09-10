@@ -11,6 +11,9 @@ $weeklySummaries = compute_weekly_summaries($entries, (float) WEEKLY_TARGET_HOUR
 $currentWeek = $weeklySummaries[0];
 $pastWeeks = array_slice($weeklySummaries, 1);
 
+$totalSurplusHours = array_sum(array_column($weeklySummaries, 'surplus'));
+$totalSurplusPay = $totalSurplusHours * SURPLUS_RATE_EUR;
+
 function h($value)
 {
     return htmlspecialchars((string) $value, ENT_QUOTES);
@@ -43,6 +46,22 @@ function h($value)
             <div class="progress-bar-fill <?= $currentWeek['met'] ? 'met' : '' ?>"
                  style="width: <?= min(100, $currentWeek['required'] > 0 ? ($currentWeek['logged'] / $currentWeek['required'] * 100) : 100) ?>%"></div>
         </div>
+        <?php if ($currentWeek['surplus'] > 0): ?>
+        <p class="surplus-note">
+            <?= h(number_format($currentWeek['surplus'], 2)) ?> surplus hours
+            &times; &euro;<?= h(number_format(SURPLUS_RATE_EUR, 2)) ?>/hr
+            = &euro;<?= h(number_format($currentWeek['surplus'] * SURPLUS_RATE_EUR, 2)) ?>
+        </p>
+        <?php endif; ?>
+    </div>
+
+    <div class="card">
+        <h2>Surplus pay</h2>
+        <p>Surplus hours are hours logged beyond a week's required hours, paid at &euro;<?= h(number_format(SURPLUS_RATE_EUR, 2)) ?>/hour.</p>
+        <div class="current-week">
+            <span><?= h(number_format($totalSurplusHours, 2)) ?> surplus hours total</span>
+            <span class="status-met">&euro;<?= h(number_format($totalSurplusPay, 2)) ?></span>
+        </div>
     </div>
 
     <div class="card">
@@ -71,7 +90,7 @@ function h($value)
         <?php else: ?>
         <table>
             <thead>
-                <tr><th>Week</th><th>Logged</th><th>Required</th><th>Status</th></tr>
+                <tr><th>Week</th><th>Logged</th><th>Required</th><th>Status</th><th>Surplus</th><th>Pay</th></tr>
             </thead>
             <tbody>
             <?php foreach ($pastWeeks as $week): ?>
@@ -82,6 +101,8 @@ function h($value)
                     <td class="<?= $week['met'] ? 'status-met' : 'status-short' ?>">
                         <?= $week['met'] ? 'Met' : h(number_format(-$week['difference'], 2)) . ' short' ?>
                     </td>
+                    <td><?= h(number_format($week['surplus'], 2)) ?></td>
+                    <td>&euro;<?= h(number_format($week['surplus'] * SURPLUS_RATE_EUR, 2)) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

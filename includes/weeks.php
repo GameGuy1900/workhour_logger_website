@@ -19,8 +19,9 @@ function week_start(string $date): string
  * @param array $entries Rows with 'entry_date' (Y-m-d) and 'hours' (float).
  * @param float $baseTarget Base weekly target hours (e.g. 12).
  * @param string $today Y-m-d, injectable for testing.
- * @return array List of ['week_start', 'week_end', 'logged', 'required', 'difference', 'met']
- *               ordered oldest week first.
+ * @return array List of ['week_start', 'week_end', 'logged', 'required', 'difference', 'met', 'surplus']
+ *               ordered oldest week first. 'surplus' is hours logged beyond that week's
+ *               required hours (0 when the week fell short); it is never carried forward.
  */
 function compute_weekly_summaries(array $entries, float $baseTarget, string $today): array
 {
@@ -49,6 +50,7 @@ function compute_weekly_summaries(array $entries, float $baseTarget, string $tod
         $required = $baseTarget + $carry;
         $difference = $logged - $required;
         $met = $difference >= 0;
+        $surplus = $met ? $difference : 0.0;
 
         $summaries[] = [
             'week_start' => $ws,
@@ -57,6 +59,7 @@ function compute_weekly_summaries(array $entries, float $baseTarget, string $tod
             'required' => $required,
             'difference' => $difference,
             'met' => $met,
+            'surplus' => $surplus,
         ];
 
         $carry = $met ? 0.0 : -$difference;

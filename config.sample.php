@@ -15,3 +15,7 @@ define('DB_PASS', 'change-me');
 // Weekly hour target. Any shortfall in a week is added on top of this
 // amount for the following week.
 define('WEEKLY_TARGET_HOURS', 12);
+
+// Pay rate (in euros) for surplus hours: hours logged in a week beyond
+// that week's required hours (including any carried-over shortfall).
+define('SURPLUS_RATE_EUR', 10.00);
