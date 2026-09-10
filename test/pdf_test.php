@@ -71,4 +71,41 @@ $pageCount = substr_count($multiPagePdf, '/Type /Page ');
 assert_true($pageCount > 1, 'enough rows force more than one page');
 assert_true(strpos($multiPagePdf, "Page 1 of {$pageCount}") !== false, 'first page reports the correct total page count');
 
+// PdfReport: a single table spanning several page breaks must repeat its
+// header row on every page it continues onto, not just the first one.
+$reportColumns = [
+    ['label' => 'Week', 'width' => 200, 'wrap' => false],
+    ['label' => 'Hours', 'width' => 315, 'wrap' => false],
+];
+$manyWeekRows = [];
+for ($i = 0; $i < 150; $i++) {
+    $manyWeekRows[] = ["Week $i", '12.00'];
+}
+$report = new PdfReport('Report', 'Subtitle');
+$report->addHeading('Weekly History');
+$report->addTable($reportColumns, $manyWeekRows);
+$multiBreakPdf = $report->render();
+$pageCount = substr_count($multiBreakPdf, '/Type /Page ');
+assert_true($pageCount >= 3, 'enough rows force at least 3 pages in this test');
+assert_equal($pageCount, substr_count($multiBreakPdf, '(Week) Tj'), 'the table header repeats on every single page, not just the first');
+
+// PdfReport: two separate tables in one document each get their own
+// repeated header, independently of the other table's pagination.
+$report2 = new PdfReport('Report', 'Subtitle');
+$report2->addHeading('Table A');
+$report2->addTable(
+    [['label' => 'Alpha', 'width' => 515, 'wrap' => false]],
+    array_fill(0, 80, ['row'])
+);
+$report2->addHeading('Table B');
+$report2->addTable(
+    [['label' => 'Beta', 'width' => 515, 'wrap' => false]],
+    array_fill(0, 80, ['row'])
+);
+$twoTablePdf = $report2->render();
+$pageCount2 = substr_count($twoTablePdf, '/Type /Page ');
+assert_true($pageCount2 >= 3, 'two large tables force several pages');
+assert_true(substr_count($twoTablePdf, '(Alpha) Tj') >= 2, 'Table A header repeats across its own page breaks');
+assert_true(substr_count($twoTablePdf, '(Beta) Tj') >= 2, 'Table B header repeats across its own page breaks');
+
 echo "All tests passed.\n";

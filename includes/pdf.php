@@ -100,122 +100,224 @@ function pdf_escape_string(string $text): string
 }
 
 /**
- * Builds a complete PDF file (as a raw byte string) for a simple table
- * report: a title, a generated-on line, a header row, and body rows.
+ * Flows headings, plain lines, and tables onto pages in order, breaking
+ * pages as needed (re-printing a table's header row when a table spans
+ * onto a new page), then renders the whole thing into a PDF file.
+ *
+ * Used for the hours export, which needs several sections (a summary, the
+ * weekly history table, the logged entries table) in one flowing document
+ * rather than a single fixed table.
+ */
+class PdfReport
+{
+    private float $pageWidth = 595.28;
+    private float $pageHeight = 841.89;
+    private float $margin = 40.0;
+    private float $usableWidth;
+    private float $usableHeight;
+    private float $bodyFontSize = 9.0;
+    private float $lineHeight = 12.0;
+    private float $rowPadding = 4.0;
+    private float $titleBlockHeight = 50.0;
+    private float $bottomReserve = 20.0;
+
+    private string $title;
+    private string $subtitle;
+    /** @var array<int, array<string, mixed>> */
+    private array $items = [];
+
+    public function __construct(string $title, string $subtitle)
+    {
+        $this->title = $title;
+        $this->subtitle = $subtitle;
+        $this->usableWidth = $this->pageWidth - 2 * $this->margin;
+        $this->usableHeight = $this->pageHeight - 2 * $this->margin;
+    }
+
+    public function addHeading(string $text): void
+    {
+        $this->items[] = ['type' => 'heading', 'text' => $text, 'height' => 22.0];
+    }
+
+    public function addLine(string $text, bool $bold = false): void
+    {
+        $this->items[] = ['type' => 'line', 'text' => $text, 'bold' => $bold, 'height' => $this->lineHeight + 4];
+    }
+
+    public function addSpacer(float $height = 10.0): void
+    {
+        $this->items[] = ['type' => 'spacer', 'height' => $height];
+    }
+
+    /**
+     * @param array $columns List of ['label' => string, 'width' => float, 'wrap' => bool].
+     *              Widths should sum to the usable page width (515pt at these margins).
+     * @param array $rows List of rows; each row is a list of string cell values matching $columns.
+     * @param string|null $footer Optional bold line printed right after the table.
+     */
+    public function addTable(array $columns, array $rows, ?string $footer = null): void
+    {
+        $headerRowHeight = $this->lineHeight + $this->rowPadding;
+        $this->items[] = ['type' => 'table_header', 'columns' => $columns, 'height' => $headerRowHeight];
+
+        foreach ($rows as $row) {
+            $cellLines = [];
+            $maxLines = 1;
+            foreach ($columns as $i => $col) {
+                $value = pdf_to_winansi((string) ($row[$i] ?? ''));
+                if (!empty($col['wrap'])) {
+                    $lines = pdf_wrap_text($value, $col['width'] - 2 * $this->rowPadding, $this->bodyFontSize);
+                    if (empty($lines)) {
+                        $lines = [''];
+                    }
+                } else {
+                    $lines = [$value];
+                }
+                $cellLines[$i] = $lines;
+                $maxLines = max($maxLines, count($lines));
+            }
+            $this->items[] = [
+                'type' => 'table_row',
+                'columns' => $columns,
+                'lines' => $cellLines,
+                'height' => $maxLines * $this->lineHeight + $this->rowPadding,
+            ];
+        }
+
+        if ($footer !== null) {
+            $this->addLine($footer, true);
+        }
+    }
+
+    public function render(): string
+    {
+        $pages = $this->paginate();
+        $totalPages = count($pages);
+
+        $pageContents = [];
+        foreach ($pages as $pageIndex => $pageItems) {
+            $pageContents[] = $this->renderPage($pageItems, $pageIndex, $totalPages);
+        }
+
+        return pdf_assemble($this->pageWidth, $this->pageHeight, $pageContents);
+    }
+
+    /** @return array<int, array<int, array<string, mixed>>> */
+    private function paginate(): array
+    {
+        $pages = [];
+        $currentPage = [];
+        $y = $this->usableHeight - $this->titleBlockHeight;
+        $activeTableColumns = null;
+
+        foreach ($this->items as $item) {
+            $needed = $item['height'];
+
+            if ($y - $needed < $this->bottomReserve && !empty($currentPage)) {
+                $pages[] = $currentPage;
+                $currentPage = [];
+                $y = $this->usableHeight;
+
+                if ($item['type'] === 'table_row' && $activeTableColumns !== null) {
+                    $headerItem = [
+                        'type' => 'table_header',
+                        'columns' => $activeTableColumns,
+                        'height' => $this->lineHeight + $this->rowPadding,
+                    ];
+                    $currentPage[] = $headerItem;
+                    $y -= $headerItem['height'];
+                }
+            }
+
+            if ($item['type'] === 'table_header') {
+                $activeTableColumns = $item['columns'];
+            } elseif ($item['type'] !== 'table_row') {
+                $activeTableColumns = null;
+            }
+
+            $currentPage[] = $item;
+            $y -= $needed;
+        }
+
+        $pages[] = $currentPage;
+        return $pages;
+    }
+
+    private function renderPage(array $pageItems, int $pageIndex, int $totalPages): string
+    {
+        $stream = "q\n";
+        $y = $this->usableHeight + $this->margin;
+
+        if ($pageIndex === 0) {
+            $stream .= pdf_text_op($this->margin, $y - 16, 16, true, pdf_to_winansi($this->title));
+            $stream .= pdf_text_op($this->margin, $y - 32, 10, false, pdf_to_winansi($this->subtitle));
+            $y -= $this->titleBlockHeight;
+        }
+
+        foreach ($pageItems as $item) {
+            switch ($item['type']) {
+                case 'heading':
+                    $stream .= pdf_text_op($this->margin, $y - 12, 12, true, pdf_to_winansi($item['text']));
+                    break;
+
+                case 'line':
+                    $stream .= pdf_text_op($this->margin, $y - $this->lineHeight + 2, 10, $item['bold'], pdf_to_winansi($item['text']));
+                    break;
+
+                case 'spacer':
+                    break;
+
+                case 'table_header':
+                    $x = $this->margin;
+                    foreach ($item['columns'] as $col) {
+                        $stream .= pdf_text_op($x + $this->rowPadding, $y - $this->lineHeight + 2, $this->bodyFontSize, true, pdf_to_winansi($col['label']));
+                        $x += $col['width'];
+                    }
+                    $stream .= pdf_line_op($this->margin, $y - $item['height'] + $this->rowPadding, $this->margin + $this->usableWidth, $y - $item['height'] + $this->rowPadding);
+                    break;
+
+                case 'table_row':
+                    $x = $this->margin;
+                    foreach ($item['columns'] as $i => $col) {
+                        $lines = $item['lines'][$i];
+                        foreach ($lines as $lineIndex => $line) {
+                            if ($line === '') continue;
+                            $ly = $y - $this->lineHeight * ($lineIndex + 1) + 2;
+                            $stream .= pdf_text_op($x + $this->rowPadding, $ly, $this->bodyFontSize, false, $line);
+                        }
+                        $x += $col['width'];
+                    }
+                    $stream .= pdf_line_op($this->margin, $y - $item['height'] + $this->rowPadding, $this->margin + $this->usableWidth, $y - $item['height'] + $this->rowPadding);
+                    break;
+            }
+
+            $y -= $item['height'];
+        }
+
+        $pageLabel = 'Page ' . ($pageIndex + 1) . ' of ' . $totalPages;
+        $stream .= pdf_text_op($this->pageWidth - $this->margin - pdf_text_width($pageLabel, 8), $this->margin - 20, 8, false, $pageLabel);
+
+        $stream .= "Q\n";
+        return $stream;
+    }
+}
+
+/**
+ * Builds a complete PDF file (as a raw byte string) for a simple
+ * single-table report. Thin wrapper around PdfReport for callers that
+ * only need one table.
  *
  * @param string $title Report title, shown at the top of the first page.
  * @param string $subtitle Smaller line under the title (e.g. a generated date).
  * @param array $columns List of ['label' => string, 'width' => float points, 'wrap' => bool].
- *              Widths should sum to the usable page width (515pt at these margins).
- * @param array $rows List of rows; each row is a list of string cell values
- *              matching $columns, in order.
+ * @param array $rows List of rows; each row is a list of string cell values matching $columns.
  * @param string $footer Optional line printed after the table (e.g. a total).
  */
 function build_table_pdf(string $title, string $subtitle, array $columns, array $rows, string $footer = ''): string
 {
-    $pageWidth = 595.28;
-    $pageHeight = 841.89;
-    $margin = 40.0;
-    $usableWidth = $pageWidth - 2 * $margin;
-    $bodyFontSize = 9.0;
-    $headerFontSize = 9.0;
-    $lineHeight = 12.0;
-    $rowPadding = 4.0;
-
-    // --- Pass 1: lay out every row into wrapped lines and paginate ---
-    $laidOutRows = [];
-    foreach ($rows as $row) {
-        $cellLines = [];
-        $maxLines = 1;
-        foreach ($columns as $i => $col) {
-            $value = pdf_to_winansi((string) ($row[$i] ?? ''));
-            if (!empty($col['wrap'])) {
-                $lines = pdf_wrap_text($value, $col['width'] - 2 * $rowPadding, $bodyFontSize);
-                if (empty($lines)) {
-                    $lines = [''];
-                }
-            } else {
-                $lines = [$value];
-            }
-            $cellLines[$i] = $lines;
-            $maxLines = max($maxLines, count($lines));
-        }
-        $laidOutRows[] = ['lines' => $cellLines, 'height' => $maxLines * $lineHeight + $rowPadding];
-    }
-
-    $titleBlockHeight = 50.0;
-    $headerRowHeight = $lineHeight + $rowPadding;
-    $footerHeight = $footer !== '' ? 30.0 : 0.0;
-    $usableHeight = $pageHeight - 2 * $margin;
-
-    $pages = [];
-    $currentPageRows = [];
-    $y = $usableHeight - $titleBlockHeight - $headerRowHeight;
-    $isFirstPage = true;
-
-    foreach ($laidOutRows as $laidRow) {
-        $needed = $laidRow['height'];
-        if ($y - $needed < ($isFirstPage ? $footerHeight : $footerHeight) && !empty($currentPageRows)) {
-            $pages[] = $currentPageRows;
-            $currentPageRows = [];
-            $isFirstPage = false;
-            $y = $usableHeight - $headerRowHeight;
-        }
-        $currentPageRows[] = $laidRow;
-        $y -= $needed;
-    }
-    $pages[] = $currentPageRows;
-    $totalPages = count($pages);
-
-    // --- Pass 2: emit content streams now that page count is known ---
-    $pageContents = [];
-    foreach ($pages as $pageIndex => $pageRows) {
-        $stream = "q\n";
-        $y = $usableHeight + $margin;
-
-        if ($pageIndex === 0) {
-            $stream .= pdf_text_op($margin, $y - 16, 16, true, pdf_to_winansi($title));
-            $stream .= pdf_text_op($margin, $y - 32, 10, false, pdf_to_winansi($subtitle));
-            $y -= $titleBlockHeight;
-        }
-
-        // Table header
-        $x = $margin;
-        foreach ($columns as $col) {
-            $stream .= pdf_text_op($x + $rowPadding, $y - $lineHeight + 2, $headerFontSize, true, pdf_to_winansi($col['label']));
-            $x += $col['width'];
-        }
-        $y -= $headerRowHeight;
-        $stream .= pdf_line_op($margin, $y + $rowPadding, $margin + $usableWidth, $y + $rowPadding);
-
-        foreach ($pageRows as $laidRow) {
-            $x = $margin;
-            foreach ($columns as $i => $col) {
-                $lines = $laidRow['lines'][$i];
-                foreach ($lines as $lineIndex => $line) {
-                    if ($line === '') continue;
-                    $ly = $y - $lineHeight * ($lineIndex + 1) + 2;
-                    $stream .= pdf_text_op($x + $rowPadding, $ly, $bodyFontSize, false, $line);
-                }
-                $x += $col['width'];
-            }
-            $y -= $laidRow['height'];
-            $stream .= pdf_line_op($margin, $y + $rowPadding, $margin + $usableWidth, $y + $rowPadding);
-        }
-
-        if ($footer !== '' && $pageIndex === $totalPages - 1) {
-            $y -= 14;
-            $stream .= pdf_text_op($margin, $y, 10, true, pdf_to_winansi($footer));
-        }
-
-        $pageLabel = 'Page ' . ($pageIndex + 1) . ' of ' . $totalPages;
-        $stream .= pdf_text_op($pageWidth - $margin - pdf_text_width($pageLabel, 8), $margin - 20, 8, false, $pageLabel);
-
-        $stream .= "Q\n";
-        $pageContents[] = $stream;
-    }
-
-    return pdf_assemble($pageWidth, $pageHeight, $pageContents);
+    $report = new PdfReport($title, $subtitle);
+    $report->addTable($columns, $rows, $footer !== '' ? $footer : null);
+    return $report->render();
 }
 
 function pdf_text_op(float $x, float $y, float $size, bool $bold, string $text): string
