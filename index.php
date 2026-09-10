@@ -1,18 +1,30 @@
 <?php
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/weeks.php';
+require_once __DIR__ . '/includes/settings.php';
+
+$settings = get_settings();
+$weeklyTargetHours = (float) $settings['weekly_target_hours'];
+$surplusRateEur = (float) $settings['surplus_rate_eur'];
+$goalLabel = $settings['goal_label'];
+$goalAmountEur = (float) $settings['goal_amount_eur'];
 
 $entries = get_db()
     ->query('SELECT id, entry_date, hours, description FROM entries ORDER BY entry_date DESC, id DESC')
     ->fetchAll();
 
 $today = (new DateTime())->format('Y-m-d');
-$weeklySummaries = compute_weekly_summaries($entries, (float) WEEKLY_TARGET_HOURS, $today);
+$weeklySummaries = compute_weekly_summaries($entries, $weeklyTargetHours, $today);
 $currentWeek = $weeklySummaries[0];
 $pastWeeks = array_slice($weeklySummaries, 1);
 
 $totalSurplusHours = array_sum(array_column($weeklySummaries, 'surplus'));
-$totalSurplusPay = $totalSurplusHours * SURPLUS_RATE_EUR;
+$totalSurplusPay = $totalSurplusHours * $surplusRateEur;
+
+$goalPaid = $goalAmountEur > 0 ? min($totalSurplusPay, $goalAmountEur) : 0.0;
+$goalPercent = $goalAmountEur > 0 ? min(100, $totalSurplusPay / $goalAmountEur * 100) : 0.0;
+$goalRemaining = $goalAmountEur > 0 ? max(0, $goalAmountEur - $totalSurplusPay) : 0.0;
+$goalExtra = $goalAmountEur > 0 ? max(0, $totalSurplusPay - $goalAmountEur) : 0.0;
 
 function h($value)
 {
@@ -30,7 +42,11 @@ function h($value)
 <body>
 <div class="container">
     <h1>Work Hour Logger</h1>
-    <p class="subtitle">Log your hours each day. Target: <?= h(WEEKLY_TARGET_HOURS) ?> hours/week &mdash; any shortfall carries into next week.</p>
+    <p class="subtitle">
+        Log your hours each day. Target: <?= h(number_format($weeklyTargetHours, 2)) ?> hours/week &mdash;
+        any shortfall carries into next week.
+        <a href="settings.php" class="settings-link">Settings</a>
+    </p>
 
     <div class="card">
         <h2>This week (<?= h($currentWeek['week_start']) ?> &ndash; <?= h($currentWeek['week_end']) ?>)</h2>
@@ -49,20 +65,40 @@ function h($value)
         <?php if ($currentWeek['surplus'] > 0): ?>
         <p class="surplus-note">
             <?= h(number_format($currentWeek['surplus'], 2)) ?> surplus hours
-            &times; &euro;<?= h(number_format(SURPLUS_RATE_EUR, 2)) ?>/hr
-            = &euro;<?= h(number_format($currentWeek['surplus'] * SURPLUS_RATE_EUR, 2)) ?>
+            &times; &euro;<?= h(number_format($surplusRateEur, 2)) ?>/hr
+            = &euro;<?= h(number_format($currentWeek['surplus'] * $surplusRateEur, 2)) ?>
         </p>
         <?php endif; ?>
     </div>
 
     <div class="card">
         <h2>Surplus pay</h2>
-        <p>Surplus hours are hours logged beyond a week's required hours, paid at &euro;<?= h(number_format(SURPLUS_RATE_EUR, 2)) ?>/hour.</p>
+        <p>Surplus hours are hours logged beyond a week's required hours, paid at &euro;<?= h(number_format($surplusRateEur, 2)) ?>/hour.</p>
         <div class="current-week">
             <span><?= h(number_format($totalSurplusHours, 2)) ?> surplus hours total</span>
             <span class="status-met">&euro;<?= h(number_format($totalSurplusPay, 2)) ?></span>
         </div>
     </div>
+
+    <?php if ($goalAmountEur > 0): ?>
+    <div class="card">
+        <h2><?= $goalLabel !== '' ? h($goalLabel) : 'Savings goal' ?></h2>
+        <div class="current-week">
+            <span>&euro;<?= h(number_format($goalPaid, 2)) ?> / &euro;<?= h(number_format($goalAmountEur, 2)) ?> paid off</span>
+            <span class="<?= $goalPercent >= 100 ? 'status-met' : '' ?>">
+                <?= $goalPercent >= 100 ? 'Paid off!' : h(number_format($goalPercent, 0)) . '%' ?>
+            </span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill <?= $goalPercent >= 100 ? 'met' : '' ?>" style="width: <?= $goalPercent ?>%"></div>
+        </div>
+        <?php if ($goalPercent < 100): ?>
+            <p class="surplus-note">&euro;<?= h(number_format($goalRemaining, 2)) ?> left to go.</p>
+        <?php elseif ($goalExtra > 0): ?>
+            <p class="surplus-note">&euro;<?= h(number_format($goalExtra, 2)) ?> surplus pay left over after paying it off.</p>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
     <div class="card">
         <h2>Log a day</h2>
@@ -102,7 +138,7 @@ function h($value)
                         <?= $week['met'] ? 'Met' : h(number_format(-$week['difference'], 2)) . ' short' ?>
                     </td>
                     <td><?= h(number_format($week['surplus'], 2)) ?></td>
-                    <td>&euro;<?= h(number_format($week['surplus'] * SURPLUS_RATE_EUR, 2)) ?></td>
+                    <td>&euro;<?= h(number_format($week['surplus'] * $surplusRateEur, 2)) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

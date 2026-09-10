@@ -12,10 +12,7 @@ define('DB_NAME', 'username_workhours');
 define('DB_USER', 'username_wh_user');
 define('DB_PASS', 'change-me');
 
-// Weekly hour target. Any shortfall in a week is added on top of this
-// amount for the following week.
-define('WEEKLY_TARGET_HOURS', 12);
-
-// Pay rate (in euros) for surplus hours: hours logged in a week beyond
-// that week's required hours (including any carried-over shortfall).
-define('SURPLUS_RATE_EUR', 10.00);
+// Weekly target hours, surplus pay rate, and the savings goal are no
+// longer set here — edit them from the Settings page in the app
+// (settings.php) once it's deployed. They're stored in the `settings`
+// table created by schema.sql.
