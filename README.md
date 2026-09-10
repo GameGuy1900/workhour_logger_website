@@ -127,7 +127,7 @@ sideways.
 ## Row limits
 
 Each table (weekly history, logged entries, settings change history) has a
-"Show" dropdown (10 / 20 / 50 / 100, default 20) above it that caps how many
+"Show" dropdown (10 / 20 / 50 / 100, default 10) above it that caps how many
 rows are visible — useful once you've been logging for a while. All rows are
 still ordered newest first, so this just trims off the older tail; nothing
 is deleted. Your choice is remembered per table in the browser

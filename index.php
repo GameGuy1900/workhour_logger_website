@@ -139,8 +139,8 @@ function h($value)
             <label class="row-limit">
                 Show
                 <select data-row-limit data-target="weekly-history-table">
-                    <option value="10">10</option>
-                    <option value="20" selected>20</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
@@ -182,8 +182,8 @@ function h($value)
             <label class="row-limit">
                 Show
                 <select data-row-limit data-target="logged-entries-table">
-                    <option value="10">10</option>
-                    <option value="20" selected>20</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
