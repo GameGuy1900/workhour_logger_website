@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS entries (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    entry_date DATE NOT NULL,
+    hours DECIMAL(4,2) NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_entry_date (entry_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
