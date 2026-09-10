@@ -184,15 +184,18 @@ function h($value)
         <div class="card-header">
             <h2>Logged entries</h2>
             <?php if (!empty($entries)): ?>
-            <label class="row-limit">
-                Show
-                <select data-row-limit data-target="logged-entries-table">
-                    <option value="10" selected>10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </label>
+            <div class="header-controls">
+                <a href="export_pdf.php" class="export-link">Export to PDF</a>
+                <label class="row-limit">
+                    Show
+                    <select data-row-limit data-target="logged-entries-table">
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </label>
+            </div>
             <?php endif; ?>
         </div>
         <?php if (empty($entries)): ?>

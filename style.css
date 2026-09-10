@@ -158,6 +158,24 @@ h1 {
     font-family: inherit;
 }
 
+.header-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.export-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.export-link:hover {
+    text-decoration: underline;
+}
+
 form.entry-form {
     display: grid;
     gap: 12px;
