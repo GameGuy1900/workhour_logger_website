@@ -37,10 +37,23 @@ function h($value)
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Work Hour Logger</title>
 <link rel="stylesheet" href="style.css">
+<script>
+(function () {
+    try {
+        var stored = localStorage.getItem('theme');
+        if (stored === 'dark' || stored === 'light') {
+            document.documentElement.setAttribute('data-theme', stored);
+        }
+    } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <div class="container">
-    <h1>Work Hour Logger</h1>
+    <div class="top-bar">
+        <h1>Work Hour Logger</h1>
+        <button type="button" id="theme-toggle" class="theme-toggle">&#127769; Dark mode</button>
+    </div>
     <p class="subtitle">
         Log your hours each day. Target: <?= h(number_format($currentWeek['weekly_target_hours'], 2)) ?> hours/week &mdash;
         any shortfall carries into next week.
@@ -174,5 +187,6 @@ function h($value)
         <?php endif; ?>
     </div>
 </div>
+<script src="theme.js"></script>
 </body>
 </html>

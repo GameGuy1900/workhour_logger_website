@@ -103,6 +103,13 @@ ALTER TABLE settings DROP COLUMN weekly_target_hours, DROP COLUMN surplus_rate_e
 Then upload the new files. Your weekly target and surplus rate carry over
 unchanged, now editable going forward without touching past weeks.
 
+## Dark mode
+
+The page follows your system's light/dark preference automatically. A
+"Dark mode" / "Light mode" button in the top-right corner lets you override
+that manually; your choice is remembered in the browser (`localStorage`) and
+applies across both pages.
+
 ### Optional: password-protect the page
 
 This app has no login of its own. Since anyone with the URL could add or
@@ -137,6 +144,8 @@ delete_entry.php        Handles deleting an entry
 includes/db.php          PDO/MySQL connection
 includes/weeks.php       Pure weekly carryover calculation logic, effective-dated settings lookup
 includes/settings.php    Reads/writes the goal row and settings history
+style.css                  Styling, including light/dark theme variables
+theme.js                   Dark mode toggle button behavior
 schema.sql                MySQL table definitions (entries, settings, settings_history)
 config.sample.php         Template for config.php (create your own, see above)
 style.css                  Styling

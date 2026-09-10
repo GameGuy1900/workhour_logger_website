@@ -46,10 +46,23 @@ $history = array_reverse(get_settings_history());
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Settings - Work Hour Logger</title>
 <link rel="stylesheet" href="style.css">
+<script>
+(function () {
+    try {
+        var stored = localStorage.getItem('theme');
+        if (stored === 'dark' || stored === 'light') {
+            document.documentElement.setAttribute('data-theme', stored);
+        }
+    } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <div class="container">
-    <h1>Settings</h1>
+    <div class="top-bar">
+        <h1>Settings</h1>
+        <button type="button" id="theme-toggle" class="theme-toggle">&#127769; Dark mode</button>
+    </div>
     <p class="subtitle"><a href="index.php">&larr; Back to logger</a></p>
 
     <?php if (isset($_GET['saved'])): ?>
@@ -118,5 +131,6 @@ $history = array_reverse(get_settings_history());
     </div>
     <?php endif; ?>
 </div>
+<script src="theme.js"></script>
 </body>
 </html>
