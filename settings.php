@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/weeks.php';
 require_once __DIR__ . '/includes/settings.php';
+require_once __DIR__ . '/includes/assets.php';
 
 function h($value)
 {
@@ -45,7 +46,7 @@ $history = array_reverse(get_settings_history());
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Settings - Work Hour Logger</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="<?= h(asset_url('style.css')) ?>">
 <script>
 (function () {
     try {
@@ -131,6 +132,6 @@ $history = array_reverse(get_settings_history());
     </div>
     <?php endif; ?>
 </div>
-<script src="theme.js"></script>
+<script src="<?= h(asset_url('theme.js')) ?>"></script>
 </body>
 </html>

@@ -110,6 +110,12 @@ The page follows your system's light/dark preference automatically. A
 that manually; your choice is remembered in the browser (`localStorage`) and
 applies across both pages.
 
+`style.css` and `theme.js` are referenced with a `?v=<file modified time>`
+query string (see `includes/assets.php`), so overwriting either file on
+your server automatically busts any browser or proxy cache — you'll
+always get the current version after a deploy, with no manual cache
+clearing needed.
+
 ### Optional: password-protect the page
 
 This app has no login of its own. Since anyone with the URL could add or

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/weeks.php';
 require_once __DIR__ . '/includes/settings.php';
+require_once __DIR__ . '/includes/assets.php';
 
 $settingsHistory = get_settings_history();
 $goalSettings = get_goal_settings();
@@ -36,7 +37,7 @@ function h($value)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Work Hour Logger</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="<?= h(asset_url('style.css')) ?>">
 <script>
 (function () {
     try {
@@ -187,6 +188,6 @@ function h($value)
         <?php endif; ?>
     </div>
 </div>
-<script src="theme.js"></script>
+<script src="<?= h(asset_url('theme.js')) ?>"></script>
 </body>
 </html>
