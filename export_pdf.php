@@ -27,65 +27,66 @@ foreach ($entries as $entry) {
 
 $weeklyColumns = [
     ['label' => 'Week', 'width' => 130, 'wrap' => false],
-    ['label' => 'Logged', 'width' => 55, 'wrap' => false],
-    ['label' => 'Required', 'width' => 60, 'wrap' => false],
+    ['label' => 'Gelogd', 'width' => 55, 'wrap' => false],
+    ['label' => 'Vereist', 'width' => 60, 'wrap' => false],
     ['label' => 'Status', 'width' => 85, 'wrap' => false],
-    ['label' => 'Surplus', 'width' => 55, 'wrap' => false],
-    ['label' => 'Rate', 'width' => 65, 'wrap' => false],
-    ['label' => 'Pay', 'width' => 65, 'wrap' => false],
+    ['label' => 'Overschot', 'width' => 55, 'wrap' => false],
+    ['label' => 'Tarief', 'width' => 65, 'wrap' => false],
+    ['label' => 'Betaling', 'width' => 65, 'wrap' => false],
 ];
 $weeklyRows = [];
 foreach ($weeklySummaries as $week) {
     $status = $week['met']
-        ? 'Met'
-        : number_format(-$week['difference'], 2) . ' short';
+        ? 'Behaald'
+        : number_format(-$week['difference'], 2) . ' tekort';
     $weeklyRows[] = [
         $week['week_start'] . ' - ' . $week['week_end'],
         number_format($week['logged'], 2),
         number_format($week['required'], 2),
         $status,
         number_format($week['surplus'], 2),
-        '€' . number_format($week['surplus_rate_eur'], 2) . '/hr',
+        '€' . number_format($week['surplus_rate_eur'], 2) . '/uur',
         '€' . number_format($week['surplus_pay'], 2),
     ];
 }
 
 $entryColumns = [
-    ['label' => 'Date', 'width' => 80, 'wrap' => false],
-    ['label' => 'Hours', 'width' => 60, 'wrap' => false],
-    ['label' => 'Description', 'width' => 375, 'wrap' => true],
+    ['label' => 'Datum', 'width' => 80, 'wrap' => false],
+    ['label' => 'Uren', 'width' => 60, 'wrap' => false],
+    ['label' => 'Omschrijving', 'width' => 375, 'wrap' => true],
 ];
 
-$report = new PdfReport('Work Hour Log', 'Generated on ' . $today);
+$report = new PdfReport('Urenoverzicht', 'Gegenereerd op ' . $today);
+$report->setPageLabelFormat('Pagina %d van %d');
 
-$report->addHeading('Summary');
+$report->addHeading('Samenvatting');
 $report->addLine(sprintf(
-    'This week (%s - %s): %s / %s hours - %s',
+    'Deze week (%s - %s): %s / %s uur - %s',
     $currentWeek['week_start'],
     $currentWeek['week_end'],
     number_format($currentWeek['logged'], 2),
     number_format($currentWeek['required'], 2),
     $currentWeek['met']
-        ? 'Target met (+' . number_format($currentWeek['difference'], 2) . ')'
-        : number_format(-$currentWeek['difference'], 2) . ' hours short'
+        ? 'Doel behaald (+' . number_format($currentWeek['difference'], 2) . ')'
+        : number_format(-$currentWeek['difference'], 2) . ' uur tekort'
 ));
 $report->addLine(sprintf(
-    'Surplus hours total: %s hours - €%s',
+    'Totaal overschoturen: %s uur - €%s',
     number_format($totalSurplusHours, 2),
     number_format($totalSurplusPay, 2)
 ), true);
 $report->addSpacer(14);
 
-$report->addHeading('Weekly History');
+$report->addHeading('Weekoverzicht');
 $report->addTable($weeklyColumns, $weeklyRows);
 $report->addSpacer(14);
 
-$report->addHeading('Logged Entries');
-$report->addTable($entryColumns, $entryRows, 'Total hours logged: ' . number_format($totalHours, 2));
+$report->addHeading('Geregistreerde uren');
+$report->addTable($entryColumns, $entryRows, 'Totaal aantal geregistreerde uren: ' . number_format($totalHours, 2));
 
 $pdf = $report->render();
 
 header('Content-Type: application/pdf');
-header('Content-Disposition: attachment; filename="work-hours-' . $today . '.pdf"');
+header('Content-Disposition: attachment; filename="urenoverzicht-' . $today . '.pdf"');
 header('Content-Length: ' . strlen($pdf));
 echo $pdf;

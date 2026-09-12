@@ -123,6 +123,8 @@ class PdfReport
 
     private string $title;
     private string $subtitle;
+    /** sprintf template for the per-page footer label; takes (page, totalPages). */
+    private string $pageLabelFormat = 'Page %d of %d';
     /** @var array<int, array<string, mixed>> */
     private array $items = [];
 
@@ -132,6 +134,12 @@ class PdfReport
         $this->subtitle = $subtitle;
         $this->usableWidth = $this->pageWidth - 2 * $this->margin;
         $this->usableHeight = $this->pageHeight - 2 * $this->margin;
+    }
+
+    /** @param string $format sprintf template taking (page number, total pages), e.g. 'Pagina %d van %d'. */
+    public function setPageLabelFormat(string $format): void
+    {
+        $this->pageLabelFormat = $format;
     }
 
     public function addHeading(string $text): void
@@ -294,7 +302,7 @@ class PdfReport
             $y -= $item['height'];
         }
 
-        $pageLabel = 'Page ' . ($pageIndex + 1) . ' of ' . $totalPages;
+        $pageLabel = sprintf($this->pageLabelFormat, $pageIndex + 1, $totalPages);
         $stream .= pdf_text_op($this->pageWidth - $this->margin - pdf_text_width($pageLabel, 8), $this->margin - 20, 8, false, $pageLabel);
 
         $stream .= "Q\n";
