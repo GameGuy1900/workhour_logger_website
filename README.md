@@ -140,8 +140,9 @@ resets on reload.
 The "Export to PDF" link above the Logged entries table (`export_pdf.php`)
 downloads a full report — in Dutch — as a PDF file:
 
-- **Samenvatting** (Summary) — the current week's status and your all-time
-  surplus totals
+- **Samenvatting** (Summary) — the current week's status, your all-time
+  surplus totals, and your savings goal's progress (only shown if a goal
+  price is set in Settings)
 - **Weekoverzicht** (Weekly History) — every week (Week, Gelogd, Vereist,
   Status, Overschot, Tarief, Betaling), oldest first
 - **Geregistreerde uren** (Logged Entries) — every entry (date, hours,

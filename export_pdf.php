@@ -5,6 +5,9 @@ require_once __DIR__ . '/includes/settings.php';
 require_once __DIR__ . '/includes/pdf.php';
 
 $settingsHistory = get_settings_history();
+$goalSettings = get_goal_settings();
+$goalLabel = $goalSettings['goal_label'];
+$goalAmountEur = (float) $goalSettings['goal_amount_eur'];
 
 $entries = get_db()
     ->query('SELECT id, entry_date, hours, description FROM entries ORDER BY entry_date ASC, id ASC')
@@ -75,6 +78,28 @@ $report->addLine(sprintf(
     number_format($totalSurplusHours, 2),
     number_format($totalSurplusPay, 2)
 ), true);
+
+if ($goalAmountEur > 0) {
+    $goalPaid = min($totalSurplusPay, $goalAmountEur);
+    $goalPercent = min(100, $totalSurplusPay / $goalAmountEur * 100);
+    $goalRemaining = max(0, $goalAmountEur - $totalSurplusPay);
+    $goalExtra = max(0, $totalSurplusPay - $goalAmountEur);
+    $goalTitle = $goalLabel !== '' ? $goalLabel : 'Spaardoel';
+
+    $report->addLine(sprintf(
+        '%s: €%s / €%s afbetaald (%s)',
+        $goalTitle,
+        number_format($goalPaid, 2),
+        number_format($goalAmountEur, 2),
+        $goalPercent >= 100 ? 'Afbetaald!' : number_format($goalPercent, 0) . '%'
+    ), true);
+    if ($goalPercent < 100) {
+        $report->addLine(sprintf('Nog €%s te gaan.', number_format($goalRemaining, 2)));
+    } elseif ($goalExtra > 0) {
+        $report->addLine(sprintf('€%s overschot over na afbetaling.', number_format($goalExtra, 2)));
+    }
+}
+
 $report->addSpacer(14);
 
 $report->addHeading('Weekoverzicht');
