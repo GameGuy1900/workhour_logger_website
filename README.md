@@ -124,6 +124,23 @@ sits in its own horizontally-scrollable container — swipe sideways on a
 table to see columns that don't fit, without the whole page scrolling
 sideways.
 
+### Installing as an app on Android
+
+The site has a web app manifest (`manifest.json`) and icons, so Chrome on
+Android can install it as a standalone app: open the site, tap the
+three-dot menu, and choose **Add to Home Screen** (or **Install app** —
+Chrome may also offer this automatically). It launches in its own window
+without the browser's address bar, using the clock icon (`icon.svg`,
+rendered to `icon-192.png`/`icon-512.png`/`icon-maskable-512.png`) and the
+app's blue as the status bar color. No offline support is included on
+purpose — every page needs the live database anyway, so a service worker
+would only risk showing stale data.
+
+This needs the site served over HTTPS to actually install — DirectAdmin
+gives every domain a free Let's Encrypt certificate (look for *SSL
+Certificates* in DirectAdmin, or ask Etheron's support to enable it if it
+isn't already), since installing from a plain `http://` URL won't work.
+
 ## Row limits & paging
 
 Each table (weekly history, logged entries, settings change history) has a
@@ -203,6 +220,10 @@ config.sample.php           Template for config.php (create your own, see above)
 style.css                    Styling, including light/dark theme variables
 theme.js                     Dark mode toggle button behavior
 row-limit.js                 "Show N rows" dropdown behavior for tables
+manifest.json                 Web app manifest (installable on Android)
+icon.svg, icon-maskable.svg    Source icons (edit these, then re-render the PNGs)
+icon-192.png, icon-512.png,
+icon-maskable-512.png           Rendered app icons referenced by manifest.json
 test/weeks_test.php          Unit tests for includes/weeks.php
 test/pdf_test.php            Unit tests for includes/pdf.php
 ```

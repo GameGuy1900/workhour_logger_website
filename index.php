@@ -37,6 +37,12 @@ function h($value)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Work Hour Logger</title>
+<link rel="manifest" href="<?= h(asset_url('manifest.json')) ?>">
+<meta name="theme-color" content="#2f6fed">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hours">
 <link rel="stylesheet" href="<?= h(asset_url('style.css')) ?>">
 <script>
 (function () {
