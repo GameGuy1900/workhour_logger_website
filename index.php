@@ -37,13 +37,13 @@ function h($value)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Work Hour Logger</title>
-<link rel="manifest" href="<?= h(asset_url('manifest.json')) ?>">
+<link rel="manifest" href="<?= h(asset_url('assets/manifest.json')) ?>">
 <meta name="theme-color" content="#2f6fed">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="<?= h(asset_url('assets/icon-192.png')) ?>">
+<link rel="apple-touch-icon" href="<?= h(asset_url('assets/icon-192.png')) ?>">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Hours">
-<link rel="stylesheet" href="<?= h(asset_url('style.css')) ?>">
+<link rel="stylesheet" href="<?= h(asset_url('assets/style.css')) ?>">
 <script>
 (function () {
     try {
@@ -237,7 +237,7 @@ function h($value)
         <?php endif; ?>
     </div>
 </div>
-<script src="<?= h(asset_url('theme.js')) ?>"></script>
-<script src="<?= h(asset_url('row-limit.js')) ?>"></script>
+<script src="<?= h(asset_url('assets/theme.js')) ?>"></script>
+<script src="<?= h(asset_url('assets/row-limit.js')) ?>"></script>
 </body>
 </html>

@@ -110,11 +110,11 @@ The page follows your system's light/dark preference automatically. A
 that manually; your choice is remembered in the browser (`localStorage`) and
 applies across both pages.
 
-`style.css` and `theme.js` are referenced with a `?v=<file modified time>`
-query string (see `includes/assets.php`), so overwriting either file on
-your server automatically busts any browser or proxy cache — you'll
-always get the current version after a deploy, with no manual cache
-clearing needed.
+`style.css` and `theme.js` (both under `assets/`) are referenced with a
+`?v=<file modified time>` query string (see `includes/assets.php`), so
+overwriting either file on your server automatically busts any browser or
+proxy cache — you'll always get the current version after a deploy, with
+no manual cache clearing needed.
 
 ## Mobile
 
@@ -126,15 +126,22 @@ sideways.
 
 ### Installing as an app on Android
 
-The site has a web app manifest (`manifest.json`) and icons, so Chrome on
-Android can install it as a standalone app: open the site, tap the
-three-dot menu, and choose **Add to Home Screen** (or **Install app** —
+The site has a web app manifest (`assets/manifest.json`) and icons, so
+Chrome on Android can install it as a standalone app: open the site, tap
+the three-dot menu, and choose **Add to Home Screen** (or **Install app** —
 Chrome may also offer this automatically). It launches in its own window
-without the browser's address bar, using the clock icon (`icon.svg`,
-rendered to `icon-192.png`/`icon-512.png`/`icon-maskable-512.png`) and the
-app's blue as the status bar color. No offline support is included on
-purpose — every page needs the live database anyway, so a service worker
-would only risk showing stale data.
+without the browser's address bar, using the clock icon (`assets/icon.svg`,
+rendered to `assets/icon-192.png`/`icon-512.png`/`icon-maskable-512.png`)
+and the app's blue as the status bar color. No offline support is included
+on purpose — every page needs the live database anyway, so a service
+worker would only risk showing stale data.
+
+All of the site's static, non-secret files (CSS, JS, the manifest, the
+icons) live under `assets/` specifically so that, if you put the site
+behind something like Cloudflare Access, you can add a single **Bypass**
+policy for the path `assets/*` — letting Chrome fetch the manifest and
+icons it needs to offer installation, without weakening the access
+protection on any of the actual PHP pages or your data.
 
 This needs the site served over HTTPS to actually install — DirectAdmin
 gives every domain a free Let's Encrypt certificate (look for *SSL
@@ -149,7 +156,7 @@ on a page, plus "« Prev" / "Next »" buttons and a "Page X of Y" indicator
 below it to page through the rest — nothing is deleted, all rows are still
 there in order (newest first), just split across pages. Changing the page
 size jumps back to page 1. Your chosen page size is remembered per table in
-the browser (`localStorage`) via `row-limit.js`; the current page itself
+the browser (`localStorage`) via `assets/row-limit.js`; the current page itself
 resets on reload.
 
 ## PDF export
@@ -213,17 +220,17 @@ delete_entry.php          Handles deleting an entry
 includes/db.php            PDO/MySQL connection
 includes/weeks.php         Pure weekly carryover calculation logic, effective-dated settings lookup
 includes/settings.php      Reads/writes the goal row and settings history
-includes/assets.php        Cache-busting ?v= helper for style.css/theme.js/row-limit.js
+includes/assets.php        Cache-busting ?v= helper for files under assets/
 includes/pdf.php           Dependency-free PDF file writer used by export_pdf.php
 schema.sql                  MySQL table definitions (entries, settings, settings_history)
 config.sample.php           Template for config.php (create your own, see above)
-style.css                    Styling, including light/dark theme variables
-theme.js                     Dark mode toggle button behavior
-row-limit.js                 "Show N rows" dropdown behavior for tables
-manifest.json                 Web app manifest (installable on Android)
-icon.svg, icon-maskable.svg    Source icons (edit these, then re-render the PNGs)
-icon-192.png, icon-512.png,
-icon-maskable-512.png           Rendered app icons referenced by manifest.json
+assets/style.css              Styling, including light/dark theme variables
+assets/theme.js                Dark mode toggle button behavior
+assets/row-limit.js            "Show N rows" dropdown behavior for tables
+assets/manifest.json            Web app manifest (installable on Android)
+assets/icon.svg, icon-maskable.svg  Source icons (edit these, then re-render the PNGs)
+assets/icon-192.png, icon-512.png,
+  icon-maskable-512.png            Rendered app icons referenced by manifest.json
 test/weeks_test.php          Unit tests for includes/weeks.php
 test/pdf_test.php            Unit tests for includes/pdf.php
 ```
