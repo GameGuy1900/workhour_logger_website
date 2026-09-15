@@ -1,4 +1,4 @@
-# Work Hour Logger
+# Work Hour Logger !!
 
 A small PHP + MySQL website for logging daily work hours with a description.
 Tracks a weekly target of 12 hours; any shortfall in a week is added on top
