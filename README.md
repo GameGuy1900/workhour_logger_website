@@ -1,8 +1,10 @@
 # Work Hour Logger
 
 A small PHP + MySQL website for logging daily work hours with a description.
-Tracks a weekly target of 12 hours; any shortfall in a week is added on top
-of the following week's target.
+Each entry is logged as a start and end time (hours worked are computed from
+the difference; an end time earlier than the start time is treated as
+crossing midnight). Tracks a weekly target of 12 hours; any shortfall in a
+week is added on top of the following week's target.
 
 ## How the weekly carryover works
 
@@ -103,6 +105,20 @@ ALTER TABLE settings DROP COLUMN weekly_target_hours, DROP COLUMN surplus_rate_e
 Then upload the new files. Your weekly target and surplus rate carry over
 unchanged, now editable going forward without touching past weeks.
 
+**If you already have entries from before start/end time logging existed**
+(an `entries` table with no `start_time`/`end_time` columns), add them before
+uploading the new files, so existing rows keep working — run this once in
+phpMyAdmin's SQL tab:
+
+```sql
+ALTER TABLE entries
+    ADD COLUMN start_time TIME NULL AFTER entry_date,
+    ADD COLUMN end_time TIME NULL AFTER start_time;
+```
+
+Existing entries will show a blank time range (their `hours` value is kept
+as-is); only new entries logged after the upgrade get a start/end time.
+
 ## Dark mode
 
 The page follows your system's light/dark preference automatically. A
@@ -198,8 +214,9 @@ Requires PHP with `pdo_sqlite` (for local testing only — production uses
 MySQL via `pdo_mysql`).
 
 ```bash
-php test/weeks_test.php   # unit tests for the carryover logic
-php -l index.php          # syntax check any file
+php test/weeks_test.php      # unit tests for the carryover logic
+php test/duration_test.php   # unit tests for start/end time -> hours logic
+php -l index.php             # syntax check any file
 ```
 
 To run the full app locally without a MySQL server, temporarily point
@@ -219,6 +236,7 @@ add_entry.php            Handles the "log a day" form submission
 delete_entry.php          Handles deleting an entry
 includes/db.php            PDO/MySQL connection
 includes/weeks.php         Pure weekly carryover calculation logic, effective-dated settings lookup
+includes/duration.php      Pure start/end time ("HH:MM") -> hours worked calculation
 includes/settings.php      Reads/writes the goal row and settings history
 includes/assets.php        Cache-busting ?v= helper for files under assets/
 includes/pdf.php           Dependency-free PDF file writer used by export_pdf.php
@@ -232,5 +250,6 @@ assets/icon.svg, icon-maskable.svg  Source icons (edit these, then re-render the
 assets/icon-192.png, icon-512.png,
   icon-maskable-512.png            Rendered app icons referenced by manifest.json
 test/weeks_test.php          Unit tests for includes/weeks.php
+test/duration_test.php       Unit tests for includes/duration.php
 test/pdf_test.php            Unit tests for includes/pdf.php
 ```

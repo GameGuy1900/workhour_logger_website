@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/duration.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
@@ -7,16 +8,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $date = $_POST['date'] ?? '';
-$hours = $_POST['hours'] ?? '';
+$startTime = $_POST['start_time'] ?? '';
+$endTime = $_POST['end_time'] ?? '';
 $description = trim($_POST['description'] ?? '');
 
 $errors = [];
 if ($date === '' || !DateTime::createFromFormat('Y-m-d', $date)) {
     $errors[] = 'A valid date is required.';
 }
-if ($hours === '' || !is_numeric($hours) || (float) $hours <= 0 || (float) $hours > 24) {
-    $errors[] = 'Hours must be a number between 0 and 24.';
+
+$hours = null;
+try {
+    $hours = compute_duration_hours($startTime, $endTime);
+} catch (InvalidArgumentException $e) {
+    $errors[] = $e->getMessage();
 }
+
 if ($description === '') {
     $errors[] = 'A description is required.';
 }
@@ -29,11 +36,13 @@ if (!empty($errors)) {
 }
 
 $stmt = get_db()->prepare(
-    'INSERT INTO entries (entry_date, hours, description) VALUES (:date, :hours, :description)'
+    'INSERT INTO entries (entry_date, start_time, end_time, hours, description) VALUES (:date, :start_time, :end_time, :hours, :description)'
 );
 $stmt->execute([
     ':date' => $date,
-    ':hours' => (float) $hours,
+    ':start_time' => $startTime,
+    ':end_time' => $endTime,
+    ':hours' => $hours,
     ':description' => $description,
 ]);
 

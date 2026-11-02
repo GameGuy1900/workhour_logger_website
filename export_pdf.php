@@ -10,7 +10,7 @@ $goalLabel = $goalSettings['goal_label'];
 $goalAmountEur = (float) $goalSettings['goal_amount_eur'];
 
 $entries = get_db()
-    ->query('SELECT id, entry_date, hours, description FROM entries ORDER BY entry_date ASC, id ASC')
+    ->query('SELECT id, entry_date, start_time, end_time, hours, description FROM entries ORDER BY entry_date ASC, id ASC')
     ->fetchAll();
 
 $today = (new DateTime())->format('Y-m-d');
@@ -25,7 +25,10 @@ $entryRows = [];
 foreach ($entries as $entry) {
     $hours = (float) $entry['hours'];
     $totalHours += $hours;
-    $entryRows[] = [$entry['entry_date'], number_format($hours, 2), $entry['description']];
+    $time = ($entry['start_time'] && $entry['end_time'])
+        ? substr($entry['start_time'], 0, 5) . '-' . substr($entry['end_time'], 0, 5)
+        : '-';
+    $entryRows[] = [$entry['entry_date'], $time, number_format($hours, 2), $entry['description']];
 }
 
 $weeklyColumns = [
@@ -54,9 +57,10 @@ foreach ($weeklySummaries as $week) {
 }
 
 $entryColumns = [
-    ['label' => 'Datum', 'width' => 80, 'wrap' => false],
-    ['label' => 'Uren', 'width' => 60, 'wrap' => false],
-    ['label' => 'Omschrijving', 'width' => 375, 'wrap' => true],
+    ['label' => 'Datum', 'width' => 70, 'wrap' => false],
+    ['label' => 'Tijd', 'width' => 70, 'wrap' => false],
+    ['label' => 'Uren', 'width' => 50, 'wrap' => false],
+    ['label' => 'Omschrijving', 'width' => 325, 'wrap' => true],
 ];
 
 $report = new PdfReport('Urenoverzicht', 'Gegenereerd op ' . $today);

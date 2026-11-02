@@ -10,8 +10,16 @@ $goalLabel = $goalSettings['goal_label'];
 $goalAmountEur = (float) $goalSettings['goal_amount_eur'];
 
 $entries = get_db()
-    ->query('SELECT id, entry_date, hours, description FROM entries ORDER BY entry_date DESC, id DESC')
+    ->query('SELECT id, entry_date, start_time, end_time, hours, description FROM entries ORDER BY entry_date DESC, id DESC')
     ->fetchAll();
+
+function format_time_range(?string $startTime, ?string $endTime): string
+{
+    if (!$startTime || !$endTime) {
+        return '&mdash;';
+    }
+    return substr($startTime, 0, 5) . '&ndash;' . substr($endTime, 0, 5);
+}
 
 $today = (new DateTime())->format('Y-m-d');
 $weeklySummaries = compute_weekly_summaries($entries, $settingsHistory, $today);
@@ -127,8 +135,13 @@ function h($value)
                 <input type="date" id="date" name="date" value="<?= h($today) ?>" required>
             </div>
             <div>
-                <label for="hours">Hours</label>
-                <input type="number" id="hours" name="hours" step="0.25" min="0.25" max="24" required>
+                <label for="start_time">Start time</label>
+                <input type="time" id="start_time" name="start_time" required>
+            </div>
+            <div>
+                <label for="end_time">End time</label>
+                <input type="time" id="end_time" name="end_time" required>
+                <p class="field-hint">An end time before the start time is treated as crossing midnight.</p>
             </div>
             <div>
                 <label for="description">What did you do?</label>
@@ -210,12 +223,13 @@ function h($value)
         <div class="table-scroll">
         <table id="logged-entries-table">
             <thead>
-                <tr><th>Date</th><th>Hours</th><th>Description</th><th></th></tr>
+                <tr><th>Date</th><th>Time</th><th>Hours</th><th>Description</th><th></th></tr>
             </thead>
             <tbody>
             <?php foreach ($entries as $entry): ?>
                 <tr>
                     <td><?= h($entry['entry_date']) ?></td>
+                    <td><?= format_time_range($entry['start_time'], $entry['end_time']) ?></td>
                     <td><?= h(number_format((float) $entry['hours'], 2)) ?></td>
                     <td class="wrap-cell"><?= nl2br(h($entry['description'])) ?></td>
                     <td>

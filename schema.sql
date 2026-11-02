@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS entries (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     entry_date DATE NOT NULL,
+    start_time TIME NULL,
+    end_time TIME NULL,
     hours DECIMAL(4,2) NOT NULL,
     description TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
