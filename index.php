@@ -136,11 +136,31 @@ function h($value)
             </div>
             <div>
                 <label for="start_time">Start time</label>
-                <input type="time" id="start_time" name="start_time" required>
+                <span class="time-select">
+                    <select id="start_time" name="start_hour" required aria-label="Start hour">
+                        <option value="" disabled selected>HH</option>
+                        <?php for ($i = 0; $i < 24; $i++): ?><option value="<?= sprintf('%02d', $i) ?>"><?= sprintf('%02d', $i) ?></option><?php endfor; ?>
+                    </select>
+                    :
+                    <select name="start_minute" required aria-label="Start minute">
+                        <option value="" disabled selected>MM</option>
+                        <?php for ($i = 0; $i < 60; $i++): ?><option value="<?= sprintf('%02d', $i) ?>"><?= sprintf('%02d', $i) ?></option><?php endfor; ?>
+                    </select>
+                </span>
             </div>
             <div>
                 <label for="end_time">End time</label>
-                <input type="time" id="end_time" name="end_time" required>
+                <span class="time-select">
+                    <select id="end_time" name="end_hour" required aria-label="End hour">
+                        <option value="" disabled selected>HH</option>
+                        <?php for ($i = 0; $i < 24; $i++): ?><option value="<?= sprintf('%02d', $i) ?>"><?= sprintf('%02d', $i) ?></option><?php endfor; ?>
+                    </select>
+                    :
+                    <select name="end_minute" required aria-label="End minute">
+                        <option value="" disabled selected>MM</option>
+                        <?php for ($i = 0; $i < 60; $i++): ?><option value="<?= sprintf('%02d', $i) ?>"><?= sprintf('%02d', $i) ?></option><?php endfor; ?>
+                    </select>
+                </span>
                 <p class="field-hint">An end time before the start time is treated as crossing midnight.</p>
             </div>
             <div>
