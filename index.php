@@ -136,11 +136,11 @@ function h($value)
             </div>
             <div>
                 <label for="start_time">Start time</label>
-                <input type="time" id="start_time" name="start_time" required>
+                <input type="time" lang="nl-NL" step="60" id="start_time" name="start_time" required>
             </div>
             <div>
                 <label for="end_time">End time</label>
-                <input type="time" id="end_time" name="end_time" required>
+                <input type="time" lang="nl-NL" step="60" id="end_time" name="end_time" required>
                 <p class="field-hint">An end time before the start time is treated as crossing midnight.</p>
             </div>
             <div>
