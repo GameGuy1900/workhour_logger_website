@@ -8,8 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $date = $_POST['date'] ?? '';
-$startTime = ($_POST['start_hour'] ?? '') . ':' . ($_POST['start_minute'] ?? '');
-$endTime = ($_POST['end_hour'] ?? '') . ':' . ($_POST['end_minute'] ?? '');
+$startTime = $_POST['start_time'] ?? '';
+$endTime = $_POST['end_time'] ?? '';
 $description = trim($_POST['description'] ?? '');
 
 $errors = [];

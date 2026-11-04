@@ -365,6 +365,3 @@ th {
     color: var(--text-faint);
     font-style: italic;
 }
-
-.time-select { display: inline-flex; align-items: center; gap: 0.35rem; }
-.time-select select { width: auto; }
